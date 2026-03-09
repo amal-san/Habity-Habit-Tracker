@@ -1,6 +1,6 @@
 import'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
-import '../services/HabitDatabase.dart';
+import '../services/habitDatabase.dart';
 import '../services/notification_service.dart';
 import '../models/habit.dart';
 import 'dart:math';

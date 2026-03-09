@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:home_widget/home_widget.dart';
-import 'services/HabitDatabase.dart';
+import 'services/habitDatabase.dart';
 import 'models/habit.dart';
 import 'screens/home_page.dart';
 import 'services/local_sync_service.dart';

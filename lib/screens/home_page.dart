@@ -6,7 +6,7 @@ import 'package:share_plus/share_plus.dart';
 import 'package:intl/intl.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../models/habit.dart';
-import '../services/HabitDatabase.dart';
+import '../services/habitDatabase.dart';
 import 'create_habit_screen.dart';
 import 'global_reminders_screen.dart';
 import '../services/notification_service.dart';
