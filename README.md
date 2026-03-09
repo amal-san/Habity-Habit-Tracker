@@ -12,6 +12,21 @@ device.
 Inspired by GitHub contribution graphs, Habity makes it easy to
 visualize your progress and build better habits over time.
 
+# 📸 Screenshots
+
+<p align="center">
+  <img src="https://github.com/manjeetdeswal/Habity-Habit-Tracker/blob/master/ss/Screenshot%202026-03-09%20210356.png" width="45%" alt="Home Screen" />
+  
+</p>
+<p align="center">
+  <img src="https://github.com/manjeetdeswal/Habity-Habit-Tracker/blob/master/ss/Screenshot%202026-03-09%20210442.png" width="45%" alt="Keyboard" />
+  <img src="https://github.com/manjeetdeswal/Habity-Habit-Tracker/blob/master/ss/Screenshot%202026-03-09%20210500.png" width="45%" alt="Display Extension" />
+</p>
+<p align="center">
+  <img src="https://github.com/manjeetdeswal/Habity-Habit-Tracker/blob/master/ss/Screenshot%202026-03-09%20210517.png" width="45%" alt="Mic Streaming" />
+    <img src="https://github.com/manjeetdeswal/Habity-Habit-Tracker/blob/master/ss/Screenshot%202026-03-09%20211459.png" width="45%" alt="Mic Streaming" />
+</p
+
 ------------------------------------------------------------------------
 
 # ✨ Features
@@ -55,7 +70,7 @@ Habity runs on:
 
 ------------------------------------------------------------------------
 
-# 📸 Screenshots
+
 
 
 ------------------------------------------------------------------------
