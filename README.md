@@ -1,151 +1,210 @@
-Habity 📊 🔥
-Habity is a clean, modern, and privacy-first habit tracker built with Flutter. Visualize your progress with GitHub-style heatmaps, keep your data private with local-only storage, and stay consistent with interactive Android widgets.
+# Habity 🔥📊
 
-✨ Features
-GitHub-Style Heatmaps: Get a visual overview of your consistency over the last 7 days up to 18 months.
+**A clean, modern, and privacy-first habit tracker.**
 
-Privacy-First & Offline: Your data stays on your device. No cloud accounts, no tracking, just your habits.
+🤖 Android \| 🪟 Windows \| 🍎 macOS \| 🐧 Linux
 
-🔄 Local Network Sync: Synchronize your data between your phone and PC over your local Wi-Fi without ever touching the cloud.
+**Habity** is a cross-platform habit tracking app built with
+**Flutter**. It helps you stay consistent with visual heatmaps, streak
+tracking, and a fully offline experience where your data stays on your
+device.
 
-📱 Interactive Widgets: Check off habits directly from your Android home screen with real-time heatmap updates.
+Inspired by GitHub contribution graphs, Habity makes it easy to
+visualize your progress and build better habits over time.
 
-🔥 Streaks & Goals: Set custom streak targets and watch your daily fire grow.
+------------------------------------------------------------------------
 
-🌓 Dynamic Theming: Full support for Light, Dark, and System-default modes.
+# ✨ Features
 
-🛠️ Multi-Platform: Native builds available for Android, Windows, Linux, and macOS.
+### 📊 GitHub-Style Heatmaps
 
-📥 Download & Install (Pre-built Apps)
-You can download the latest automated builds directly from the GitHub Actions tab.
+Visualize your consistency using beautiful contribution-style heatmaps.\
+Track activity from **7 days up to 18 months**.
 
-🍎 macOS
-Download the habity-macos zip file from the latest Actions run.
+### 🔒 Privacy First
 
-Double-click the zip to extract it.
+Habity stores everything **locally on your device**.\
+No cloud accounts, no tracking, and no data collection.
 
-Drag the extracted Habity.app file into your Applications folder.
+### 🔄 Local Network Sync
 
-Important Security Bypass: Because this is an open-source app without a paid Apple Developer certificate, macOS Gatekeeper will block it from opening normally the first time. To open it:
+Sync your habits between your **phone and PC over local Wi-Fi**.\
+No internet servers involved --- your data stays private.
 
-Right-click (or hold Control and click) the Habity.app icon.
+### 📱 Android Home Screen Widgets
 
-Select Open from the drop-down menu.
+Check off habits directly from your home screen with **interactive
+widgets**.
 
-A security warning will pop up. Click Open again.
+### 🔥 Streaks & Goals
 
-🐧 Linux (Ubuntu / Debian / Arch)
-Download the habity-linux zip file from the latest Actions run.
+Set daily goals and build powerful **streaks** to stay motivated.
 
-Extract the zip file to your desired folder (e.g., ~/Downloads/habity-linux).
+### 🌓 Dynamic Themes
 
-Open your terminal and navigate to the extracted folder:
+Supports **Light Mode, Dark Mode, and System Theme**.
 
-Bash
+### 🖥️ Multi-Platform
+
+Habity runs on:
+
+-   Android
+-   Windows
+-   macOS
+-   Linux
+
+------------------------------------------------------------------------
+
+# 📸 Screenshots
+
+
+------------------------------------------------------------------------
+
+# 📥 Download & Install
+
+Pre-built apps are available from **GitHub Actions builds**.
+
+➡ Download from here:
+https://github.com/manjeetdeswal/Habity-Habit-Tracker/releases/tag/1.0
+
+------------------------------------------------------------------------
+
+# 🍎 macOS
+
+1.  Download **habity-macos.zip**
+2.  Extract the file
+3.  Drag **Habity.app** into the **Applications** folder
+
+If macOS blocks the app:
+
+Right click → **Open** → **Open anyway**
+
+------------------------------------------------------------------------
+
+# 🐧 Linux (Ubuntu / Debian / Arch)
+
+Download **habity-linux.zip** and run:
+
+``` bash
 cd ~/Downloads/habity-linux
-Make the app executable:
-
-Bash
 chmod +x habity
-(Note: If you are running an older build where the file wasn't renamed yet, run chmod +x fitdy instead).
-
-Launch the app:
-
-Bash
 ./habity
-🪟 Windows & 🤖 Android
-Windows: Download the windows-app zip, extract it, and double-click habity.exe.
+```
 
-Android: Download the android-apk artifact, transfer it to your phone, and install the APK package.
+If using an older build:
 
-Gemini said
-Habity 📊 🔥
-Habity is a clean, modern, and privacy-first habit tracker built with Flutter. Visualize your progress with GitHub-style heatmaps, keep your data private with local-only storage, and stay consistent with interactive Android widgets.
+    ./fitdy
 
-✨ Features
-GitHub-Style Heatmaps: Get a visual overview of your consistency over the last 7 days up to 18 months.
+------------------------------------------------------------------------
 
-Privacy-First & Offline: Your data stays on your device. No cloud accounts, no tracking, just your habits.
+# 🪟 Windows
 
-🔄 Local Network Sync: Synchronize your data between your phone and PC over your local Wi-Fi without ever touching the cloud.
+1.  Download **windows-app.zip**
+2.  Extract the file
+3.  Double click:
 
-📱 Interactive Widgets: Check off habits directly from your Android home screen with real-time heatmap updates.
+```{=html}
+<!-- -->
+```
+    habity.exe
 
-🔥 Streaks & Goals: Set custom streak targets and watch your daily fire grow.
+------------------------------------------------------------------------
 
-🌓 Dynamic Theming: Full support for Light, Dark, and System-default modes.
+# 🤖 Android
 
-🛠️ Multi-Platform: Native builds available for Android, Windows, Linux, and macOS.
+1.  Download **android-apk**
+2.  Transfer APK to your phone
+3.  Install the APK file
 
-📥 Download & Install (Pre-built Apps)
-You can download the latest automated builds directly from the GitHub Actions tab.
+You may need to enable **Install from Unknown Sources**.
 
-🍎 macOS
-Download the habity-macos zip file from the latest Actions run.
+------------------------------------------------------------------------
 
-Double-click the zip to extract it.
+# 🛠️ Building from Source
 
-Drag the extracted Habity.app file into your Applications folder.
+### Prerequisites
 
-Important Security Bypass: Because this is an open-source app without a paid Apple Developer certificate, macOS Gatekeeper will block it from opening normally the first time. To open it:
+-   Flutter SDK (latest stable)
+-   Android Studio / VS Code
+-   Java JDK
 
-Right-click (or hold Control and click) the Habity.app icon.
+------------------------------------------------------------------------
 
-Select Open from the drop-down menu.
+### Clone the repository
 
-A security warning will pop up. Click Open again.
-
-🐧 Linux (Ubuntu / Debian / Arch)
-Download the habity-linux zip file from the latest Actions run.
-
-Extract the zip file to your desired folder (e.g., ~/Downloads/habity-linux).
-
-Open your terminal and navigate to the extracted folder:
-
-Bash
-cd ~/Downloads/habity-linux
-Make the app executable:
-
-Bash
-chmod +x habity
-(Note: If you are running an older build where the file wasn't renamed yet, run chmod +x fitdy instead).
-
-Launch the app:
-
-Bash
-./habity
-🪟 Windows & 🤖 Android
-Windows: Download the windows-app zip, extract it, and double-click habity.exe.
-
-Android: Download the android-apk artifact, transfer it to your phone, and install the APK package.
-
-🚀 Building from Source
-Prerequisites
-Flutter SDK (Latest Stable)
-
-Android Studio / VS Code
-
-Java JDK (for Android builds)
-
-Installation
-Clone the repository:
-
-Bash
+``` bash
 git clone https://github.com/manjeetdeswal123/Habity.git
-Navigate to the project folder:
-
-Bash
 cd Habity
-Install dependencies:
+```
 
-Bash
+------------------------------------------------------------------------
+
+### Install dependencies
+
+``` bash
 flutter pub get
-Run the app:
+```
 
-Bash
+------------------------------------------------------------------------
+
+### Run the app
+
+``` bash
 flutter run
-🧡 Support the Project
-If Habity helps you stay consistent, consider supporting the developer:
+```
 
-📜 License
-This project is licensed under the MIT License - see the LICENSE file for details.
+------------------------------------------------------------------------
+
+# 📦 Build Releases
+
+Android APK
+
+``` bash
+flutter build apk
+```
+
+Windows
+
+``` bash
+flutter build windows
+```
+
+Linux
+
+``` bash
+flutter build linux
+```
+
+macOS
+
+``` bash
+flutter build macos
+```
+
+------------------------------------------------------------------------
+
+
+# 🧡 Support the Project
+
+If **Habity** helps you stay consistent:
+
+⭐ Star the repository\
+🐛 Report issues\
+💡 Suggest features
+
+Your support helps improve the project.
+
+------------------------------------------------------------------------
+
+# 📜 License
+
+This project is licensed under the **MIT License**.
+
+See the **LICENSE** file for details.
+
+------------------------------------------------------------------------
+
+# 👨‍💻 Developer
+
+**Manjeet Deswal**
+
