@@ -9,17 +9,42 @@ class NotificationService {
   static Future<void> init() async {
     tz.initializeTimeZones();
 
-
+    // 1. Android Settings
     const AndroidInitializationSettings androidInitSettings = AndroidInitializationSettings('@drawable/launch_background');
-    const InitializationSettings initSettings = InitializationSettings(android: androidInitSettings);
+
+    // 2. macOS / iOS Settings (Darwin)
+    const DarwinInitializationSettings darwinInitSettings = DarwinInitializationSettings(
+      requestAlertPermission: true,
+      requestBadgePermission: true,
+      requestSoundPermission: true,
+    );
+
+    // 3. Linux Settings
+    const LinuxInitializationSettings linuxInitSettings = LinuxInitializationSettings(
+      defaultActionName: 'Open App',
+    );
+
+    // 4. Combine them all
+    const InitializationSettings initSettings = InitializationSettings(
+      android: androidInitSettings,
+      iOS: darwinInitSettings,
+      macOS: darwinInitSettings,
+      linux: linuxInitSettings,
+    );
 
     await _notificationsPlugin.initialize(initSettings);
 
+    // Request Android Permissions
     _notificationsPlugin.resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>()?.requestNotificationsPermission();
     _notificationsPlugin.resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>()?.requestExactAlarmsPermission();
+
+    // Request macOS Permissions
+    _notificationsPlugin.resolvePlatformSpecificImplementation<MacOSFlutterLocalNotificationsPlugin>()?.requestPermissions(
+      alert: true,
+      badge: true,
+      sound: true,
+    );
   }
-
-
 
   static Future<void> scheduleGlobalReminder(TimeOfDay time, String title, String body) async {
     await cancelGlobalReminder();
@@ -39,12 +64,15 @@ class NotificationService {
             importance: Importance.max,
             priority: Priority.high,
           ),
+          // Add Desktop Notification Details
+          macOS: DarwinNotificationDetails(),
+          linux: LinuxNotificationDetails(),
         ),
         androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
         uiLocalNotificationDateInterpretation: UILocalNotificationDateInterpretation.absoluteTime,
         matchDateTimeComponents: DateTimeComponents.time,
       );
-      debugPrint('4. Status: SUCCESS - Aligned with hardware clock and handed to Android.');
+      debugPrint('4. Status: SUCCESS - Aligned with hardware clock and handed to OS.');
     } catch (e) {
       debugPrint('4. Status: FAILED to schedule - $e');
     }
@@ -55,21 +83,16 @@ class NotificationService {
   }
 
   static tz.TZDateTime _nextInstanceOfTime(TimeOfDay time) {
-
     final now = DateTime.now();
-
     DateTime scheduledDate = DateTime(now.year, now.month, now.day, time.hour, time.minute);
 
     if (scheduledDate.isBefore(now)) {
       scheduledDate = scheduledDate.add(const Duration(days: 1));
     }
 
-    // 3. Convert perfectly to a UTC Timestamp.
-
+    // Convert perfectly to a UTC Timestamp.
     return tz.TZDateTime.from(scheduledDate, tz.UTC);
   }
-
-
 
   static Future<void> scheduleHabitReminder(int habitId, String title, List<TimeOfDay> times, List<int> days) async {
     await cancelHabitReminder(habitId);
@@ -92,6 +115,9 @@ class NotificationService {
               importance: Importance.max,
               priority: Priority.high,
             ),
+            // Add Desktop Notification Details
+            macOS: DarwinNotificationDetails(),
+            linux: LinuxNotificationDetails(),
           ),
           androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
           uiLocalNotificationDateInterpretation: UILocalNotificationDateInterpretation.absoluteTime,
@@ -133,13 +159,16 @@ class NotificationService {
         importance: Importance.max,
         priority: Priority.high,
       ),
+      // Add Desktop Notification Details
+      macOS: DarwinNotificationDetails(),
+      linux: LinuxNotificationDetails(),
     );
+
     await _notificationsPlugin.show(
       999,
       'Test Successful! ',
-      ' notification  is working .',
+      ' notification is working .',
       platformChannelSpecifics,
     );
   }
-
 }

@@ -611,7 +611,7 @@ class _HomePageState extends State<HomePage> {
             Navigator.push(context, MaterialPageRoute(builder: (context) => const StatisticsScreen()));
           },
         ),
-        title: Text('Fitdy', style: TextStyle(fontWeight: FontWeight.bold, color: textColor)),
+        title: Text('Habity', style: TextStyle(fontWeight: FontWeight.bold, color: textColor)),
         centerTitle: true,
         actions: [
           IconButton(
