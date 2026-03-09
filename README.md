@@ -80,7 +80,7 @@ Habity runs on:
 Pre-built apps are available from **GitHub Actions builds**.
 
 ➡ Download from here:
-https://github.com/manjeetdeswal/Habity-Habit-Tracker/releases/tag/1.0
+https://github.com/manjeetdeswal/Habity-Habit-Tracker/releases
 
 ------------------------------------------------------------------------
 
