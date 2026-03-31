@@ -10,11 +10,14 @@ import 'package:url_launcher/url_launcher.dart';
 import '../models/habit.dart';
 import '../main.dart';
 import '../services/local_sync_service.dart';
-import 'global_reminders_screen.dart';
 
 
 class SettingsScreen extends StatelessWidget {
   const SettingsScreen({super.key});
+
+  String _fontFamilyLabel(String id) {
+    return getFontById(id).label;
+  }
 
   String _fontScaleLabel(double scale) {
     const epsilon = 0.001;
@@ -163,25 +166,70 @@ class SettingsScreen extends StatelessWidget {
   }
 
   void _showThemeDialog(BuildContext context) {
-    final settingsBox = Hive.box('settingsBox');
     showDialog(
         context: context,
         builder: (context) {
           return AlertDialog(
-            title: const Text('Select Theme'),
+            title: const Text('Select Theme Type'),
             backgroundColor: Theme.of(context).cardColor,
             content: SizedBox(
-              width: 360,
-              child: ValueListenableBuilder<String>(
-                valueListenable: appThemeIdNotifier,
-                builder: (context, selectedThemeId, _) {
-                  return Column(
+              width: 320,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  ListTile(
+                    leading: const Icon(Icons.wb_sunny_outlined),
+                    title: const Text('Light themes'),
+                    subtitle: const Text('Bright, minimal, and clean styles'),
+                    onTap: () {
+                      Navigator.pop(context);
+                      _showThemeListDialog(context, isDark: false);
+                    },
+                  ),
+                  const SizedBox(height: 8),
+                  ListTile(
+                    leading: const Icon(Icons.dark_mode_outlined),
+                    title: const Text('Dark themes'),
+                    subtitle: const Text('Deep, contrasty, and focused styles'),
+                    onTap: () {
+                      Navigator.pop(context);
+                      _showThemeListDialog(context, isDark: true);
+                    },
+                  ),
+                ],
+              ),
+            ),
+          );
+        }
+    );
+  }
+
+  void _showThemeListDialog(BuildContext context, {required bool isDark}) {
+    final settingsBox = Hive.box('settingsBox');
+    final filtered = appThemeOptions
+        .where((t) => (t.mode == ThemeMode.dark) == isDark)
+        .toList();
+
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: Text(isDark ? 'Dark Themes' : 'Light Themes'),
+          backgroundColor: Theme.of(context).cardColor,
+          content: SizedBox(
+            width: 360,
+            child: ValueListenableBuilder<String>(
+              valueListenable: appThemeIdNotifier,
+              builder: (context, selectedThemeId, _) {
+                return SingleChildScrollView(
+                  child: Column(
                     mainAxisSize: MainAxisSize.min,
-                    children: appThemeOptions.map((option) {
+                    children: filtered.map((option) {
                       return RadioListTile<String>(
                         value: option.id,
                         groupValue: selectedThemeId,
                         title: Text(option.label),
+                        subtitle: Text(option.description),
                         onChanged: (value) {
                           if (value == null) return;
                           appThemeIdNotifier.value = value;
@@ -190,12 +238,13 @@ class SettingsScreen extends StatelessWidget {
                         },
                       );
                     }).toList(),
-                  );
-                },
-              ),
+                  ),
+                );
+              },
             ),
-          );
-        }
+          ),
+        );
+      },
     );
   }
 
@@ -233,6 +282,46 @@ class SettingsScreen extends StatelessWidget {
     );
   }
 
+  void _showFontFamilyDialog(BuildContext context) {
+    final settingsBox = Hive.box('settingsBox');
+    showDialog(
+      context: context,
+      builder: (context) {
+        return ValueListenableBuilder<String>(
+          valueListenable: appFontIdNotifier,
+          builder: (context, selectedId, _) {
+            return AlertDialog(
+              title: const Text('Font Family'),
+              backgroundColor: Theme.of(context).cardColor,
+              content: SizedBox(
+                width: 360,
+                child: SingleChildScrollView(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: appFontOptions.map((option) {
+                      return RadioListTile<String>(
+                        value: option.id,
+                        groupValue: selectedId,
+                        title: Text(option.label),
+                        subtitle: Text(option.description),
+                        onChanged: (value) {
+                          if (value == null) return;
+                          appFontIdNotifier.value = value;
+                          settingsBox.put('appFontId', value);
+                          Navigator.pop(context);
+                        },
+                      );
+                    }).toList(),
+                  ),
+                ),
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
@@ -256,19 +345,37 @@ class SettingsScreen extends StatelessWidget {
               valueListenable: Hive.box('settingsBox').listenable(),
               builder: (context, box, child) {
                 final allowPast = box.get('allowPastEdits', defaultValue: true);
+                final showViewSwitcher = box.get('showViewModeSwitcher', defaultValue: true);
                 return Container(
                   margin: const EdgeInsets.only(bottom: 10),
                   padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
                   decoration: BoxDecoration(color: cardColor, borderRadius: BorderRadius.circular(12)),
-                  child: Row(
+                  child: Column(
                     children: [
-                      Icon(Icons.edit_calendar, color: textColor, size: 22),
-                      const SizedBox(width: 15),
-                      Expanded(child: Text('Allow Editing Past Days', style: TextStyle(color: textColor, fontSize: 16, fontWeight: FontWeight.w500))),
-                      Switch(
-                        value: allowPast,
-                        activeColor: const Color(0xFF673AB7),
-                        onChanged: (val) => box.put('allowPastEdits', val),
+                      Row(
+                        children: [
+                          Icon(Icons.edit_calendar, color: textColor, size: 22),
+                          const SizedBox(width: 15),
+                          Expanded(child: Text('Allow Editing Past Days', style: TextStyle(color: textColor, fontSize: 16, fontWeight: FontWeight.w500))),
+                          Switch(
+                            value: allowPast,
+                            activeColor: Theme.of(context).colorScheme.primary,
+                            onChanged: (val) => box.put('allowPastEdits', val),
+                          ),
+                        ],
+                      ),
+                      const Divider(height: 18),
+                      Row(
+                        children: [
+                          Icon(Icons.view_week_rounded, color: textColor, size: 22),
+                          const SizedBox(width: 15),
+                          Expanded(child: Text('Show View Mode Switcher', style: TextStyle(color: textColor, fontSize: 16, fontWeight: FontWeight.w500))),
+                          Switch(
+                            value: showViewSwitcher,
+                            activeColor: Theme.of(context).colorScheme.primary,
+                            onChanged: (val) => box.put('showViewModeSwitcher', val),
+                          ),
+                        ],
                       ),
                     ],
                   ),
@@ -356,6 +463,18 @@ class SettingsScreen extends StatelessWidget {
                 cardColor,
                 textColor,
                 () => _showFontSizeDialog(context),
+              );
+            },
+          ),
+          ValueListenableBuilder<String>(
+            valueListenable: appFontIdNotifier,
+            builder: (context, fontId, _) {
+              return _buildSettingItem(
+                Icons.text_fields,
+                'Font Family: ${_fontFamilyLabel(fontId)}',
+                cardColor,
+                textColor,
+                () => _showFontFamilyDialog(context),
               );
             },
           ),

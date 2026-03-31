@@ -55,7 +55,8 @@ Future<void> interactiveCallback(Uri? uri) async {
 
 
 final ValueNotifier<double> fontScaleNotifier = ValueNotifier(1.0);
-final ValueNotifier<String> appThemeIdNotifier = ValueNotifier('system');
+final ValueNotifier<String> appThemeIdNotifier = ValueNotifier('premium-futuristic');
+final ValueNotifier<String> appFontIdNotifier = ValueNotifier('system');
 
 const Map<String, double> appFontScaleOptions = {
   'Large': 1.15,
@@ -64,29 +65,34 @@ const Map<String, double> appFontScaleOptions = {
   'Extra Small': 0.8,
 };
 
-ThemeData _buildTheme({
-  required Brightness brightness,
-  required Color scaffoldBackgroundColor,
-  required Color cardColor,
-  required AppBarTheme appBarTheme,
-  Color? primaryColor,
-}) {
-  return ThemeData(
-    brightness: brightness,
-    colorScheme: ColorScheme.fromSeed(
-      seedColor: primaryColor ?? const Color(0xFF673AB7),
-      brightness: brightness,
-    ),
-    scaffoldBackgroundColor: scaffoldBackgroundColor,
-    cardColor: cardColor,
-    appBarTheme: appBarTheme,
-    useMaterial3: true,
-  );
+class AppThemeSpec {
+  final String id;
+  final String label;
+  final String description;
+  final ThemeMode mode;
+  final Color seedColor;
+  final Color lightScaffold;
+  final Color lightSurface;
+  final Color darkScaffold;
+  final Color darkSurface;
+
+  const AppThemeSpec({
+    required this.id,
+    required this.label,
+    required this.description,
+    required this.mode,
+    required this.seedColor,
+    required this.lightScaffold,
+    required this.lightSurface,
+    required this.darkScaffold,
+    required this.darkSurface,
+  });
 }
 
 class AppThemeOption {
   final String id;
   final String label;
+  final String description;
   final ThemeMode mode;
   final ThemeData lightTheme;
   final ThemeData darkTheme;
@@ -94,153 +100,362 @@ class AppThemeOption {
   const AppThemeOption({
     required this.id,
     required this.label,
+    required this.description,
     required this.mode,
     required this.lightTheme,
     required this.darkTheme,
   });
 }
 
-final List<AppThemeOption> appThemeOptions = [
-  AppThemeOption(
-    id: 'system',
-    label: 'System Default',
-    mode: ThemeMode.system,
-    lightTheme: _buildTheme(
-      brightness: Brightness.light,
-      scaffoldBackgroundColor: Colors.grey.shade100,
-      cardColor: Colors.white,
-      appBarTheme: AppBarTheme(backgroundColor: Colors.grey.shade100, foregroundColor: Colors.black, elevation: 0),
-      primaryColor: const Color(0xFF673AB7),
+TextTheme _buildTextTheme(Brightness brightness) {
+  final base = ThemeData(brightness: brightness).textTheme;
+  return base.copyWith(
+    displaySmall: base.displaySmall?.copyWith(fontWeight: FontWeight.w700, letterSpacing: -0.4),
+    headlineMedium: base.headlineMedium?.copyWith(fontWeight: FontWeight.w700, letterSpacing: -0.2),
+    titleLarge: base.titleLarge?.copyWith(fontWeight: FontWeight.w700, letterSpacing: -0.1),
+    titleMedium: base.titleMedium?.copyWith(fontWeight: FontWeight.w600),
+    bodyLarge: base.bodyLarge?.copyWith(height: 1.35),
+    bodyMedium: base.bodyMedium?.copyWith(height: 1.35),
+    labelLarge: base.labelLarge?.copyWith(fontWeight: FontWeight.w600, letterSpacing: 0.15),
+  );
+}
+
+class AppFontOption {
+  final String id;
+  final String label;
+  final String description;
+  final String? fontFamily;
+
+  const AppFontOption({
+    required this.id,
+    required this.label,
+    required this.description,
+    required this.fontFamily,
+  });
+}
+
+ThemeData _buildTheme({
+  required Brightness brightness,
+  required Color scaffoldBackgroundColor,
+  required Color surfaceColor,
+  required Color seedColor,
+}) {
+  final scheme = ColorScheme.fromSeed(
+    seedColor: seedColor,
+    brightness: brightness,
+    surface: surfaceColor,
+  );
+
+  final isDark = brightness == Brightness.dark;
+
+  return ThemeData(
+    brightness: brightness,
+    colorScheme: scheme,
+    scaffoldBackgroundColor: scaffoldBackgroundColor,
+    cardColor: surfaceColor,
+    textTheme: _buildTextTheme(brightness),
+    appBarTheme: AppBarTheme(
+      backgroundColor: scaffoldBackgroundColor,
+      foregroundColor: scheme.onSurface,
+      elevation: 0,
+      centerTitle: true,
+      titleTextStyle: _buildTextTheme(brightness).titleLarge?.copyWith(color: scheme.onSurface),
     ),
-    darkTheme: _buildTheme(
-      brightness: Brightness.dark,
-      scaffoldBackgroundColor: const Color(0xFF121421),
-      cardColor: const Color(0xFF1C1F30),
-      appBarTheme: const AppBarTheme(backgroundColor: Color(0xFF121421), foregroundColor: Colors.white, elevation: 0),
-      primaryColor: const Color(0xFF673AB7),
+    cardTheme: CardThemeData(
+      color: surfaceColor,
+      elevation: isDark ? 0 : 2,
+      shadowColor: scheme.shadow.withOpacity(isDark ? 0.0 : 0.08),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
     ),
-  ),
-  AppThemeOption(
-    id: 'minimal-light',
-    label: 'Minimal Light',
+    filledButtonTheme: FilledButtonThemeData(
+      style: FilledButton.styleFrom(
+        backgroundColor: scheme.primary,
+        foregroundColor: scheme.onPrimary,
+        minimumSize: const Size(0, 52),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        textStyle: const TextStyle(fontWeight: FontWeight.w600),
+      ),
+    ),
+    elevatedButtonTheme: ElevatedButtonThemeData(
+      style: ElevatedButton.styleFrom(
+        backgroundColor: surfaceColor,
+        foregroundColor: scheme.onSurface,
+        elevation: 0,
+        minimumSize: const Size(0, 52),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+          side: BorderSide(color: scheme.outlineVariant),
+        ),
+      ),
+    ),
+    outlinedButtonTheme: OutlinedButtonThemeData(
+      style: OutlinedButton.styleFrom(
+        foregroundColor: scheme.onSurface,
+        side: BorderSide(color: scheme.outlineVariant),
+        minimumSize: const Size(0, 52),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      ),
+    ),
+    floatingActionButtonTheme: FloatingActionButtonThemeData(
+      backgroundColor: scheme.primary,
+      foregroundColor: scheme.onPrimary,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+    ),
+    inputDecorationTheme: InputDecorationTheme(
+      filled: true,
+      fillColor: isDark ? surfaceColor.withOpacity(0.75) : surfaceColor,
+      contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
+      border: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(14),
+        borderSide: BorderSide(color: scheme.outlineVariant),
+      ),
+      enabledBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(14),
+        borderSide: BorderSide(color: scheme.outlineVariant),
+      ),
+      focusedBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(14),
+        borderSide: BorderSide(color: scheme.primary, width: 1.6),
+      ),
+    ),
+    bottomNavigationBarTheme: BottomNavigationBarThemeData(
+      backgroundColor: scaffoldBackgroundColor,
+      selectedItemColor: scheme.primary,
+      unselectedItemColor: scheme.onSurface.withOpacity(0.55),
+      type: BottomNavigationBarType.fixed,
+      elevation: 0,
+    ),
+    segmentedButtonTheme: SegmentedButtonThemeData(
+      style: ButtonStyle(
+        backgroundColor: WidgetStateProperty.resolveWith((states) {
+          if (states.contains(WidgetState.selected)) {
+            return scheme.primary.withOpacity(0.16);
+          }
+          return surfaceColor.withOpacity(isDark ? 0.45 : 0.92);
+        }),
+        foregroundColor: WidgetStateProperty.all(scheme.onSurface),
+        side: WidgetStateProperty.all(BorderSide(color: scheme.outlineVariant)),
+        shape: WidgetStateProperty.all(
+          RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+        ),
+      ),
+    ),
+    dialogTheme: DialogThemeData(
+      backgroundColor: surfaceColor,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+    ),
+    bottomSheetTheme: BottomSheetThemeData(
+      backgroundColor: surfaceColor,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+    ),
+    snackBarTheme: SnackBarThemeData(
+      behavior: SnackBarBehavior.floating,
+      backgroundColor: surfaceColor,
+      contentTextStyle: TextStyle(color: scheme.onSurface),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+    ),
+    useMaterial3: true,
+  );
+}
+final List<AppThemeSpec> _themeSpecs = [
+  AppThemeSpec(
+    id: 'elegant-minimal',
+    label: 'Elegant Minimal',
+    description: 'Soft neutrals, refined contrast, understated accents.',
     mode: ThemeMode.light,
-    lightTheme: _buildTheme(
-      brightness: Brightness.light,
-      scaffoldBackgroundColor: const Color(0xFFF7F7F8),
-      cardColor: Colors.white,
-      appBarTheme: const AppBarTheme(backgroundColor: Color(0xFFF7F7F8), foregroundColor: Color(0xFF111111), elevation: 0),
-      primaryColor: const Color(0xFF111111),
-    ),
-    darkTheme: _buildTheme(
-      brightness: Brightness.dark,
-      scaffoldBackgroundColor: const Color(0xFF121421),
-      cardColor: const Color(0xFF1C1F30),
-      appBarTheme: const AppBarTheme(backgroundColor: Color(0xFF121421), foregroundColor: Colors.white, elevation: 0),
-      primaryColor: const Color(0xFF673AB7),
-    ),
+    seedColor: const Color(0xFF5B4BDA),
+    lightScaffold: const Color(0xFFF6F7FB),
+    lightSurface: const Color(0xFFFFFFFF),
+    darkScaffold: const Color(0xFF111319),
+    darkSurface: const Color(0xFF1A1E27),
   ),
-  AppThemeOption(
-    id: 'minimal-dark',
-    label: 'Minimal Dark',
+  AppThemeSpec(
+    id: 'premium-futuristic',
+    label: 'Premium Futuristic',
+    description: 'Recommended: clean depth, luminous accent, premium surfaces.',
     mode: ThemeMode.dark,
-    lightTheme: _buildTheme(
-      brightness: Brightness.light,
-      scaffoldBackgroundColor: Colors.grey.shade100,
-      cardColor: Colors.white,
-      appBarTheme: AppBarTheme(backgroundColor: Colors.grey.shade100, foregroundColor: Colors.black, elevation: 0),
-      primaryColor: const Color(0xFF673AB7),
-    ),
-    darkTheme: _buildTheme(
-      brightness: Brightness.dark,
-      scaffoldBackgroundColor: const Color(0xFF0D1117),
-      cardColor: const Color(0xFF161B22),
-      appBarTheme: const AppBarTheme(backgroundColor: Color(0xFF0D1117), foregroundColor: Color(0xFFE6EDF3), elevation: 0),
-      primaryColor: const Color(0xFF9DA7B3),
-    ),
+    seedColor: const Color(0xFF7C5CFF),
+    lightScaffold: const Color(0xFFF4F5FF),
+    lightSurface: const Color(0xFFFFFFFF),
+    darkScaffold: const Color(0xFF0D1020),
+    darkSurface: const Color(0xFF171B2E),
   ),
-  AppThemeOption(
-    id: 'solarized-light',
-    label: 'Solarized Light',
+  AppThemeSpec(
+    id: 'dark-glass-luxury',
+    label: 'Dark Glass Luxury',
+    description: 'Deep charcoal + cool glass layering with elegant highlights.',
+    mode: ThemeMode.dark,
+    seedColor: const Color(0xFF9B8CFF),
+    lightScaffold: const Color(0xFFF4F5FF),
+    lightSurface: const Color(0xFFFFFFFF),
+    darkScaffold: const Color(0xFF090A0F),
+    darkSurface: const Color(0xFF141722),
+  ),
+  AppThemeSpec(
+    id: 'pearl-light',
+    label: 'Pearl Light',
+    description: 'Bright and airy, premium white surfaces with soft contrast.',
     mode: ThemeMode.light,
-    lightTheme: _buildTheme(
-      brightness: Brightness.light,
-      scaffoldBackgroundColor: const Color(0xFFfdf6e3),
-      cardColor: const Color(0xFFeee8d5),
-      appBarTheme: const AppBarTheme(backgroundColor: Color(0xFFfdf6e3), foregroundColor: Color(0xFF586e75), elevation: 0),
-      primaryColor: const Color(0xFF268bd2),
-    ),
-    darkTheme: _buildTheme(
-      brightness: Brightness.dark,
-      scaffoldBackgroundColor: const Color(0xFF121421),
-      cardColor: const Color(0xFF1C1F30),
-      appBarTheme: const AppBarTheme(backgroundColor: Color(0xFF121421), foregroundColor: Colors.white, elevation: 0),
-      primaryColor: const Color(0xFF673AB7),
-    ),
+    seedColor: const Color(0xFF6B63FF),
+    lightScaffold: const Color(0xFFFBFBFE),
+    lightSurface: const Color(0xFFFFFFFF),
+    darkScaffold: const Color(0xFF10131E),
+    darkSurface: const Color(0xFF1A2030),
   ),
-  AppThemeOption(
-    id: 'solarized-dark',
-    label: 'Solarized Dark',
-    mode: ThemeMode.dark,
-    lightTheme: _buildTheme(
-      brightness: Brightness.light,
-      scaffoldBackgroundColor: Colors.grey.shade100,
-      cardColor: Colors.white,
-      appBarTheme: AppBarTheme(backgroundColor: Colors.grey.shade100, foregroundColor: Colors.black, elevation: 0),
-      primaryColor: const Color(0xFF673AB7),
-    ),
-    darkTheme: _buildTheme(
-      brightness: Brightness.dark,
-      scaffoldBackgroundColor: const Color(0xFF002b36),
-      cardColor: const Color(0xFF073642),
-      appBarTheme: const AppBarTheme(backgroundColor: Color(0xFF002b36), foregroundColor: Color(0xFF93a1a1), elevation: 0),
-      primaryColor: const Color(0xFF2aa198),
-    ),
+  AppThemeSpec(
+    id: 'mist-light',
+    label: 'Mist Light',
+    description: 'Cool grayscale light theme for a clean productivity vibe.',
+    mode: ThemeMode.light,
+    seedColor: const Color(0xFF4F6D8A),
+    lightScaffold: const Color(0xFFF4F7FA),
+    lightSurface: const Color(0xFFFFFFFF),
+    darkScaffold: const Color(0xFF0E131B),
+    darkSurface: const Color(0xFF18202B),
   ),
-  AppThemeOption(
-    id: 'vscode-dark-plus',
-    label: 'VS Code Dark+',
-    mode: ThemeMode.dark,
-    lightTheme: _buildTheme(
-      brightness: Brightness.light,
-      scaffoldBackgroundColor: Colors.grey.shade100,
-      cardColor: Colors.white,
-      appBarTheme: AppBarTheme(backgroundColor: Colors.grey.shade100, foregroundColor: Colors.black, elevation: 0),
-      primaryColor: const Color(0xFF673AB7),
-    ),
-    darkTheme: _buildTheme(
-      brightness: Brightness.dark,
-      scaffoldBackgroundColor: const Color(0xFF1E1E1E),
-      cardColor: const Color(0xFF252526),
-      appBarTheme: const AppBarTheme(backgroundColor: Color(0xFF1E1E1E), foregroundColor: Color(0xFFD4D4D4), elevation: 0),
-      primaryColor: const Color(0xFF007ACC),
-    ),
+  AppThemeSpec(
+    id: 'rose-light',
+    label: 'Rose Light',
+    description: 'Warm premium light palette with subtle rose accenting.',
+    mode: ThemeMode.light,
+    seedColor: const Color(0xFFB55A7A),
+    lightScaffold: const Color(0xFFFEF7F9),
+    lightSurface: const Color(0xFFFFFFFF),
+    darkScaffold: const Color(0xFF151018),
+    darkSurface: const Color(0xFF1F1723),
   ),
-  AppThemeOption(
+  AppThemeSpec(
+    id: 'forest-light',
+    label: 'Forest Light',
+    description: 'Natural green-led light palette, calm and balanced.',
+    mode: ThemeMode.light,
+    seedColor: const Color(0xFF2F7D62),
+    lightScaffold: const Color(0xFFF4FAF7),
+    lightSurface: const Color(0xFFFFFFFF),
+    darkScaffold: const Color(0xFF0E1713),
+    darkSurface: const Color(0xFF16241E),
+  ),
+  AppThemeSpec(
     id: 'vscode-light-plus',
     label: 'VS Code Light+',
+    description: 'Light editor-inspired theme with crisp neutral contrast.',
     mode: ThemeMode.light,
-    lightTheme: _buildTheme(
-      brightness: Brightness.light,
-      scaffoldBackgroundColor: const Color(0xFFFFFFFF),
-      cardColor: const Color(0xFFF3F3F3),
-      appBarTheme: const AppBarTheme(backgroundColor: Color(0xFFFFFFFF), foregroundColor: Color(0xFF333333), elevation: 0),
-      primaryColor: const Color(0xFF005FB8),
-    ),
-    darkTheme: _buildTheme(
-      brightness: Brightness.dark,
-      scaffoldBackgroundColor: const Color(0xFF121421),
-      cardColor: const Color(0xFF1C1F30),
-      appBarTheme: const AppBarTheme(backgroundColor: Color(0xFF121421), foregroundColor: Colors.white, elevation: 0),
-      primaryColor: const Color(0xFF673AB7),
-    ),
+    seedColor: const Color(0xFF005FB8),
+    lightScaffold: const Color(0xFFFFFFFF),
+    lightSurface: const Color(0xFFF3F3F3),
+    darkScaffold: const Color(0xFF1E1E1E),
+    darkSurface: const Color(0xFF252526),
+  ),
+  AppThemeSpec(
+    id: 'midnight-neon',
+    label: 'Midnight Neon',
+    description: 'Dark modern palette with vibrant electric accent.',
+    mode: ThemeMode.dark,
+    seedColor: const Color(0xFF00D1FF),
+    lightScaffold: const Color(0xFFF4F8FF),
+    lightSurface: const Color(0xFFFFFFFF),
+    darkScaffold: const Color(0xFF080B14),
+    darkSurface: const Color(0xFF10182A),
+  ),
+  AppThemeSpec(
+    id: 'graphite-pro',
+    label: 'Graphite Pro',
+    description: 'Professional dark graphite style with muted premium tones.',
+    mode: ThemeMode.dark,
+    seedColor: const Color(0xFF8A93A6),
+    lightScaffold: const Color(0xFFF4F5F7),
+    lightSurface: const Color(0xFFFFFFFF),
+    darkScaffold: const Color(0xFF121416),
+    darkSurface: const Color(0xFF1A1D22),
+  ),
+  AppThemeSpec(
+    id: 'solarized-dark',
+    label: 'Solarized Dark',
+    description: 'Classic dark solarized theme tuned for dashboards.',
+    mode: ThemeMode.dark,
+    seedColor: const Color(0xFF2AA198),
+    lightScaffold: const Color(0xFFFDF6E3),
+    lightSurface: const Color(0xFFEEE8D5),
+    darkScaffold: const Color(0xFF002B36),
+    darkSurface: const Color(0xFF073642),
+  ),
+  AppThemeSpec(
+    id: 'charcoal-night',
+    label: 'Charcoal Night',
+    description: 'Soft charcoal dark theme with subtle blue accents.',
+    mode: ThemeMode.dark,
+    seedColor: const Color(0xFF5C7AEA),
+    lightScaffold: const Color(0xFFF5F7FF),
+    lightSurface: const Color(0xFFFFFFFF),
+    darkScaffold: const Color(0xFF101218),
+    darkSurface: const Color(0xFF181C26),
   ),
 ];
+
+final List<AppThemeOption> appThemeOptions = _themeSpecs
+    .map(
+      (spec) => AppThemeOption(
+        id: spec.id,
+        label: spec.label,
+        description: spec.description,
+        mode: spec.mode,
+        lightTheme: _buildTheme(
+          brightness: Brightness.light,
+          scaffoldBackgroundColor: spec.lightScaffold,
+          surfaceColor: spec.lightSurface,
+          seedColor: spec.seedColor,
+        ),
+        darkTheme: _buildTheme(
+          brightness: Brightness.dark,
+          scaffoldBackgroundColor: spec.darkScaffold,
+          surfaceColor: spec.darkSurface,
+          seedColor: spec.seedColor,
+        ),
+      ),
+    )
+    .toList();
 
 AppThemeOption getThemeById(String id) {
   return appThemeOptions.firstWhere(
     (t) => t.id == id,
     orElse: () => appThemeOptions.first,
   );
+}
+
+const List<AppFontOption> appFontOptions = [
+  AppFontOption(
+    id: 'system',
+    label: 'System Default',
+    description: 'Platform default font, balanced and familiar.',
+    fontFamily: null,
+  ),
+  AppFontOption(
+    id: 'rounded',
+    label: 'Rounded Sans',
+    description: 'Softer, friendlier headings (e.g. Nunito).',
+    fontFamily: 'Nunito',
+  ),
+  AppFontOption(
+    id: 'tech',
+    label: 'Tech Grotesk',
+    description: 'Slightly futuristic geometric look.',
+    fontFamily: 'SpaceGrotesk',
+  ),
+];
+
+AppFontOption getFontById(String id) {
+  return appFontOptions.firstWhere(
+    (f) => f.id == id,
+    orElse: () => appFontOptions.first,
+  );
+}
+
+ThemeData _applyFontToTheme(ThemeData base, String? fontFamily) {
+  if (fontFamily == null) return base;
+  final updatedTextTheme = base.textTheme.apply(fontFamily: fontFamily);
+  return base.copyWith(textTheme: updatedTextTheme);
 }
 
 void main() async {
@@ -261,8 +476,10 @@ void main() async {
   final settingsBox = await Hive.openBox('settingsBox');
   final savedFontScale = (settingsBox.get('appFontScale', defaultValue: 1.0) as num).toDouble();
   fontScaleNotifier.value = savedFontScale;
-  final savedThemeId = settingsBox.get('appThemeId', defaultValue: 'system') as String;
+  final savedThemeId = settingsBox.get('appThemeId', defaultValue: 'premium-futuristic') as String;
   appThemeIdNotifier.value = savedThemeId;
+  final savedFontId = settingsBox.get('appFontId', defaultValue: 'system') as String;
+  appFontIdNotifier.value = savedFontId;
 
   await NotificationService.init();
 
@@ -285,26 +502,32 @@ class FitdyApp extends StatelessWidget {
     return ValueListenableBuilder<String>(
       valueListenable: appThemeIdNotifier,
       builder: (_, String currentThemeId, __) {
-        return ValueListenableBuilder<double>(
-          valueListenable: fontScaleNotifier,
-          builder: (_, double currentFontScale, __) {
-            final theme = getThemeById(currentThemeId);
-            return MaterialApp(
-              title: 'Habity',
-              debugShowCheckedModeBanner: false,
-              builder: (context, child) {
-                final mediaQuery = MediaQuery.of(context);
-                return MediaQuery(
-                  data: mediaQuery.copyWith(
-                    textScaler: TextScaler.linear(currentFontScale),
-                  ),
-                  child: child ?? const SizedBox.shrink(),
+        return ValueListenableBuilder<String>(
+          valueListenable: appFontIdNotifier,
+          builder: (_, String currentFontId, __) {
+            return ValueListenableBuilder<double>(
+              valueListenable: fontScaleNotifier,
+              builder: (_, double currentFontScale, __) {
+                final theme = getThemeById(currentThemeId);
+                final font = getFontById(currentFontId);
+                return MaterialApp(
+                  title: 'Habity',
+                  debugShowCheckedModeBanner: false,
+                  builder: (context, child) {
+                    final mediaQuery = MediaQuery.of(context);
+                    return MediaQuery(
+                      data: mediaQuery.copyWith(
+                        textScaler: TextScaler.linear(currentFontScale),
+                      ),
+                      child: child ?? const SizedBox.shrink(),
+                    );
+                  },
+                  theme: _applyFontToTheme(theme.lightTheme, font.fontFamily),
+                  darkTheme: _applyFontToTheme(theme.darkTheme, font.fontFamily),
+                  themeMode: theme.mode,
+                  home: const HomePage(),
                 );
               },
-              theme: theme.lightTheme,
-              darkTheme: theme.darkTheme,
-              themeMode: theme.mode,
-              home: const HomePage(),
             );
           },
         );

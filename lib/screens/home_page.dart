@@ -5,7 +5,6 @@ import 'package:flutter_heatmap_calendar/flutter_heatmap_calendar.dart';
 import 'package:table_calendar/table_calendar.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:intl/intl.dart';
-import 'package:url_launcher/url_launcher.dart';
 import 'package:reorderable_grid_view/reorderable_grid_view.dart';
 import 'package:home_widget/home_widget.dart';
 
@@ -402,7 +401,7 @@ class _HomePageState extends State<HomePage> {
             behavior: SnackBarBehavior.floating,
             action: SnackBarAction(
               label: 'Undo',
-              textColor: const Color(0xFF673AB7),
+              textColor: Theme.of(context).colorScheme.primary,
               onPressed: () {
                 final restoredHabit = Habit(
                   name: name,
@@ -534,7 +533,10 @@ class _HomePageState extends State<HomePage> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text("Today's Progress", style: TextStyle(color: textColor, fontSize: 16, fontWeight: FontWeight.bold)),
-              Text("$completedCount / ${habits.length}", style: const TextStyle(color: Color(0xFF673AB7), fontWeight: FontWeight.bold)),
+              Text(
+                "$completedCount / ${habits.length}",
+                style: TextStyle(color: Theme.of(context).colorScheme.primary, fontWeight: FontWeight.bold),
+              ),
             ],
           ),
           const SizedBox(height: 12),
@@ -544,23 +546,12 @@ class _HomePageState extends State<HomePage> {
               value: progress,
               minHeight: 10,
               backgroundColor: Colors.grey.withOpacity(0.2),
-              color: const Color(0xFF673AB7),
+              color: Theme.of(context).colorScheme.primary,
             ),
           ),
         ],
       ),
     );
-  }
-
-  Future<void> _launchDonationURL() async {
-    final Uri url = Uri.parse('https://www.patreon.com/cw/UnrealComponent');
-    if (!await launchUrl(url, mode: LaunchMode.externalApplication)) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Could not open donation link')),
-        );
-      }
-    }
   }
 
   List<DropdownMenuItem<int>> _getDropdownItems() {
@@ -624,7 +615,7 @@ class _HomePageState extends State<HomePage> {
             currentIndex: _currentIndex,
             type: BottomNavigationBarType.fixed,
             backgroundColor: isDark ? const Color(0xFF121421) : Colors.white,
-            selectedItemColor: const Color(0xFF673AB7),
+            selectedItemColor: Theme.of(context).colorScheme.primary,
             unselectedItemColor: Colors.grey.shade500,
             showUnselectedLabels: false,
             elevation: 10,
@@ -643,7 +634,8 @@ class _HomePageState extends State<HomePage> {
       // NEW: Only show Floating Action Button when on the Habits Tab
       floatingActionButton: (_currentIndex == 0 || _currentIndex == 2 || _currentIndex == 3)
           ? FloatingActionButton(
-        backgroundColor: const Color(0xFF673AB7), foregroundColor: Colors.white,
+        backgroundColor: Theme.of(context).colorScheme.primary,
+        foregroundColor: Theme.of(context).colorScheme.onPrimary,
         onPressed: () {
           if (_currentIndex == 0) {
             Navigator.push(context, MaterialPageRoute(builder: (context) => const CreateHabitScreen()));
@@ -665,55 +657,63 @@ class _HomePageState extends State<HomePage> {
           // TAB 0: Your existing Column holding the Habits View
           Column(
             children: [
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 4.0),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Expanded(
-                      child: DropdownButton<int>(
-                        value: _daysToShow,
-                        dropdownColor: cardColor,
-                        style: TextStyle(color: textColor, fontWeight: FontWeight.w600, fontSize: 14),
-                        underline: const SizedBox(),
-                        isExpanded: true,
-                        icon: Icon(Icons.keyboard_arrow_down, color: textColor, size: 20),
-                        items: _getDropdownItems(),
-                        onChanged: (val) {
-                          setState(() {
-                            _daysToShow = val!;
-                            _saveViewSettings(_viewMode, _daysToShow);
-                          });
-                        },
-                      ),
-                    ),
-                    const SizedBox(width: 10),
-                    SegmentedButton<int>(
-                      style: SegmentedButton.styleFrom(
-                        backgroundColor: isDark ? Colors.transparent : Colors.white,
-                        selectedBackgroundColor: const Color(0xFF673AB7).withOpacity(0.2),
-                        padding: const EdgeInsets.symmetric(horizontal: 8),
-                      ),
-                      segments: const [
-                        ButtonSegment(value: 0, icon: Icon(Icons.grid_view_rounded, size: 18)),
-                        ButtonSegment(value: 1, icon: Icon(Icons.view_list_rounded, size: 18)),
-                        ButtonSegment(value: 2, icon: Icon(Icons.view_week_rounded, size: 18)),
+              ValueListenableBuilder(
+                valueListenable: Hive.box('settingsBox').listenable(),
+                builder: (context, box, _) {
+                  final showViewSwitcher = box.get('showViewModeSwitcher', defaultValue: true);
+                  return Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 4.0),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Expanded(
+                          child: DropdownButton<int>(
+                            value: _daysToShow,
+                            dropdownColor: cardColor,
+                            style: TextStyle(color: textColor, fontWeight: FontWeight.w600, fontSize: 14),
+                            underline: const SizedBox(),
+                            isExpanded: true,
+                            icon: Icon(Icons.keyboard_arrow_down, color: textColor, size: 20),
+                            items: _getDropdownItems(),
+                            onChanged: (val) {
+                              setState(() {
+                                _daysToShow = val!;
+                                _saveViewSettings(_viewMode, _daysToShow);
+                              });
+                            },
+                          ),
+                        ),
+                        if (showViewSwitcher) ...[
+                          const SizedBox(width: 10),
+                          SegmentedButton<int>(
+                            style: SegmentedButton.styleFrom(
+                              backgroundColor: isDark ? Colors.transparent : Colors.white,
+                              selectedBackgroundColor: Theme.of(context).colorScheme.primary.withOpacity(0.16),
+                              padding: const EdgeInsets.symmetric(horizontal: 8),
+                            ),
+                            segments: const [
+                              ButtonSegment(value: 0, icon: Icon(Icons.grid_view_rounded, size: 18)),
+                              ButtonSegment(value: 1, icon: Icon(Icons.view_list_rounded, size: 18)),
+                              ButtonSegment(value: 2, icon: Icon(Icons.view_week_rounded, size: 18)),
+                            ],
+                            selected: {_viewMode},
+                            onSelectionChanged: (Set<int> newSelection) {
+                              setState(() {
+                                _viewMode = newSelection.first;
+                                int savedDays = _getSavedDurationForView(_viewMode);
+                                if (_viewMode == 0 && ![7, 14, 21, 30, 60].contains(savedDays)) savedDays = 30;
+                                if (_viewMode == 2 && ![5, 7, 14].contains(savedDays)) savedDays = 7;
+                                if (_viewMode == 1 && ![30, 60, 90, 180, 365, 540].contains(savedDays)) savedDays = 60;
+                                _daysToShow = savedDays;
+                                _saveViewSettings(_viewMode, _daysToShow);
+                              });
+                            },
+                          ),
+                        ],
                       ],
-                      selected: {_viewMode},
-                      onSelectionChanged: (Set<int> newSelection) {
-                        setState(() {
-                          _viewMode = newSelection.first;
-                          int savedDays = _getSavedDurationForView(_viewMode);
-                          if (_viewMode == 0 && ![7, 14, 21, 30, 60].contains(savedDays)) savedDays = 30;
-                          if (_viewMode == 2 && ![5, 7, 14].contains(savedDays)) savedDays = 7;
-                          if (_viewMode == 1 && ![30, 60, 90, 180, 365, 540].contains(savedDays)) savedDays = 60;
-                          _daysToShow = savedDays;
-                          _saveViewSettings(_viewMode, _daysToShow);
-                        });
-                      },
                     ),
-                  ],
-                ),
+                  );
+                },
               ),
 
               if (_viewMode == 2)
