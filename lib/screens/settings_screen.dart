@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:share_plus/share_plus.dart';
@@ -14,6 +15,14 @@ import 'global_reminders_screen.dart';
 
 class SettingsScreen extends StatelessWidget {
   const SettingsScreen({super.key});
+
+  String _fontScaleLabel(double scale) {
+    const epsilon = 0.001;
+    for (final entry in appFontScaleOptions.entries) {
+      if ((entry.value - scale).abs() < epsilon) return entry.key;
+    }
+    return 'Medium';
+  }
 
   Future<void> _launchURL(BuildContext context, String urlString) async {
     final Uri url = Uri.parse(urlString);
@@ -103,11 +112,27 @@ class SettingsScreen extends StatelessWidget {
       FilePickerResult? result = await FilePicker.platform.pickFiles(
         type: FileType.custom,
         allowedExtensions: ['json'],
+        withData: true,
       );
 
       if (result != null) {
-        File file = File(result.files.single.path!);
-        String jsonString = await file.readAsString();
+        final file = result.files.single;
+        String jsonString;
+
+        if (kIsWeb) {
+          final bytes = file.bytes;
+          if (bytes == null) {
+            throw Exception('Selected file has no readable bytes on web.');
+          }
+          jsonString = utf8.decode(bytes);
+        } else {
+          final path = file.path;
+          if (path == null) {
+            throw Exception('Selected file path is missing.');
+          }
+          jsonString = await File(path).readAsString();
+        }
+
         List<dynamic> jsonData = jsonDecode(jsonString);
 
         final box = Hive.box<Habit>('habitsBox');
@@ -127,28 +152,84 @@ class SettingsScreen extends StatelessWidget {
         }
         ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Data imported successfully!')));
       }
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Error reading backup file.')));
+    } catch (e, st) {
+      debugPrint('Backup import failed: $e');
+      debugPrintStack(stackTrace: st);
+      final message = e.toString();
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error reading backup file: $message')),
+      );
     }
   }
 
   void _showThemeDialog(BuildContext context) {
+    final settingsBox = Hive.box('settingsBox');
     showDialog(
         context: context,
         builder: (context) {
           return AlertDialog(
             title: const Text('Select Theme'),
             backgroundColor: Theme.of(context).cardColor,
-            content: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                ListTile(title: const Text('Light Mode'), leading: const Icon(Icons.light_mode), onTap: () { themeNotifier.value = ThemeMode.light; Navigator.pop(context); }),
-                ListTile(title: const Text('Dark Mode'), leading: const Icon(Icons.dark_mode), onTap: () { themeNotifier.value = ThemeMode.dark; Navigator.pop(context); }),
-                ListTile(title: const Text('System Default'), leading: const Icon(Icons.settings_system_daydream), onTap: () { themeNotifier.value = ThemeMode.system; Navigator.pop(context); }),
-              ],
+            content: SizedBox(
+              width: 360,
+              child: ValueListenableBuilder<String>(
+                valueListenable: appThemeIdNotifier,
+                builder: (context, selectedThemeId, _) {
+                  return Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: appThemeOptions.map((option) {
+                      return RadioListTile<String>(
+                        value: option.id,
+                        groupValue: selectedThemeId,
+                        title: Text(option.label),
+                        onChanged: (value) {
+                          if (value == null) return;
+                          appThemeIdNotifier.value = value;
+                          settingsBox.put('appThemeId', value);
+                          Navigator.pop(context);
+                        },
+                      );
+                    }).toList(),
+                  );
+                },
+              ),
             ),
           );
         }
+    );
+  }
+
+  void _showFontSizeDialog(BuildContext context) {
+    final settingsBox = Hive.box('settingsBox');
+    showDialog(
+      context: context,
+      builder: (context) {
+        return ValueListenableBuilder<double>(
+          valueListenable: fontScaleNotifier,
+          builder: (context, selectedScale, _) {
+            return AlertDialog(
+              title: const Text('Font Size'),
+              backgroundColor: Theme.of(context).cardColor,
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: appFontScaleOptions.entries.map((entry) {
+                  return RadioListTile<double>(
+                    value: entry.value,
+                    groupValue: selectedScale,
+                    title: Text(entry.key),
+                    onChanged: (value) {
+                      if (value == null) return;
+                      fontScaleNotifier.value = value;
+                      settingsBox.put('appFontScale', value);
+                      Navigator.pop(context);
+                    },
+                  );
+                }).toList(),
+              ),
+            );
+          },
+        );
+      },
     );
   }
 
@@ -266,6 +347,18 @@ class SettingsScreen extends StatelessWidget {
           const SizedBox(height: 30),
           _buildSectionHeader('Appearance', isDark),
           _buildSettingItem(Icons.palette_outlined, 'Change Theme', cardColor, textColor, () => _showThemeDialog(context)),
+          ValueListenableBuilder<double>(
+            valueListenable: fontScaleNotifier,
+            builder: (context, scale, _) {
+              return _buildSettingItem(
+                Icons.format_size,
+                'Font Size: ${_fontScaleLabel(scale)}',
+                cardColor,
+                textColor,
+                () => _showFontSizeDialog(context),
+              );
+            },
+          ),
 
           const SizedBox(height: 30),
           _buildSectionHeader('About', isDark),

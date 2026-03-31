@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:flutter_heatmap_calendar/flutter_heatmap_calendar.dart';
 import 'package:table_calendar/table_calendar.dart';
@@ -46,8 +47,10 @@ class _HomePageState extends State<HomePage> {
     _viewMode = _settingsBox.get('viewMode', defaultValue: 1);
     int savedDays = _getSavedDurationForView(_viewMode);
 
-    HomeWidget.widgetClicked.listen(_handleWidgetClick);
-    HomeWidget.initiallyLaunchedFromHomeWidget().then(_handleWidgetClick);
+    if (!kIsWeb) {
+      HomeWidget.widgetClicked.listen(_handleWidgetClick);
+      HomeWidget.initiallyLaunchedFromHomeWidget().then(_handleWidgetClick);
+    }
 
     if (_viewMode == 0 && ![7, 14, 21, 30, 60].contains(savedDays)) savedDays = 30;
     if (_viewMode == 2 && ![5, 7, 14].contains(savedDays)) savedDays = 7;
@@ -471,30 +474,35 @@ class _HomePageState extends State<HomePage> {
               const SizedBox(height: 16),
               Builder(
                   builder: (context) {
-                    Widget heatMapWidget = FittedBox(
-                      fit: BoxFit.scaleDown,
-                      alignment: Alignment.centerLeft,
-                      clipBehavior: Clip.none,
-                      child: Padding(
-                        padding: const EdgeInsets.only(left: 45.0, right: 20.0, top: 12.0, bottom: 12.0),
-                        child: HeatMap(
-                          datasets: dataset,
-                          colorMode: ColorMode.opacity,
-                          showText: false,
-                          scrollable: false,
-                          size: isGrid ? 20 : 16,
-                          fontSize: 12,
-                          showColorTip: !isGrid,
-                          margin: const EdgeInsets.all(3),
-                          startDate: DateTime.now().subtract(Duration(days: _daysToShow)),
-                          endDate: DateTime.now(),
-                          colorsets: {1: habitColor},
-                          defaultColor: isDark ? const Color(0xFF2A2D43) : Colors.grey.shade200,
-                          textColor: isDark ? Colors.white54 : Colors.black54,
-                        ),
+                    Widget heatMapWidget = Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 8),
+                      child: LayoutBuilder(
+                        builder: (context, constraints) {
+                          final weekColumns = (_daysToShow / 7).ceil();
+                          final availableWidth = constraints.maxWidth - 24;
+                          final adaptiveCellSize = ((availableWidth / weekColumns) - 6).clamp(12, 24).toDouble();
+                          return HeatMap(
+                            datasets: dataset,
+                            colorMode: ColorMode.opacity,
+                            showText: false,
+                            scrollable: false,
+                            size: isGrid ? 20 : adaptiveCellSize,
+                            fontSize: 12,
+                            showColorTip: !isGrid,
+                            margin: const EdgeInsets.all(3),
+                            startDate: DateTime.now().subtract(Duration(days: _daysToShow)),
+                            endDate: DateTime.now(),
+                            colorsets: {1: habitColor},
+                            defaultColor: isDark ? const Color(0xFF2A2D43) : Colors.grey.shade200,
+                            textColor: isDark ? Colors.white54 : Colors.black54,
+                          );
+                        },
                       ),
                     );
-                    return isGrid ? Expanded(child: heatMapWidget) : heatMapWidget;
+                    if (isGrid) {
+                      return Expanded(child: heatMapWidget);
+                    }
+                    return heatMapWidget;
                   }
               ),
             ],
@@ -601,11 +609,6 @@ class _HomePageState extends State<HomePage> {
         title: Text('Habity', style: TextStyle(fontWeight: FontWeight.bold, color: textColor)),
         centerTitle: true,
         actions: [
-          IconButton(
-            icon: const Icon(Icons.favorite, color: Colors.redAccent),
-            tooltip: 'Support Habity',
-            onPressed: _launchDonationURL,
-          ),
           IconButton(icon: Icon(Icons.notifications_none, color: textColor), onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (context) => const GlobalRemindersScreen()))),
           IconButton(icon: Icon(Icons.settings, color: textColor), onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (context) => const SettingsScreen())))
         ],
